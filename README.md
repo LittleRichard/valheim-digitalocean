@@ -30,6 +30,12 @@ When you want to play, the `start_server.py` script will do the following (presu
 - display the IP of the server to the user
 - game on!
 
+#### to start server
+- first time only, do this: `python3 -m venv valheim_venv`
+- every time, do this: `source valheim_venv/bin/activate`
+- first time only, do this: `pip install -r requirements.txt`
+- execute: `python client/start_server.py`
+
 When you're done, the `stop_server.py` script will do the following
 - DigitalOcean API: identify a running droplet
 - ssh command to droplet; stop valheim server: `cd ~/valheim-digitalocean/server; docker exec -it valheam odin stop`
@@ -39,3 +45,7 @@ When you're done, the `stop_server.py` script will do the following
 - DigitalOcean API: rename new snapshot `<name from config>_new` to `<name from config>`
 - DigitalOcean API: destroy droplet (saves money)
 
+
+#### to stop server
+- every time, do this: `source valheim_venv/bin/activate`
+- execute: `python client/stop_server.py`
