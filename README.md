@@ -15,7 +15,7 @@ The server is mostly a one-time setup, but if you want to load your own world yo
 - make a snapshot of it named the same as `<name from config>`
 
 ### client setup
-The client part of this codebase will use a DigitalOcean API key along with a digital ocean python API to instrument the server.  The key reasons for having this instead of leaving it running 24/7 are:
+The client part of this codebase will use a DigitalOcean API key along with a digital ocean python API to instrument the server.  The key reasons for having startup/shutdown scripts instead of leaving it running 24/7 are:
 - cost
 - time in game may pass without any players present?
 - mostly cost though
