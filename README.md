@@ -25,14 +25,14 @@ pre-requisites
 
 When you want to play, the `start_server.py` script will do the following (presumes ssh access to the droplet is configured):
 - DigitalOcean API: create a "droplet" (DigitalOcean's name for a server instance) from a snapshot
-- ssh command to droplet, start docker container(s): `cd ~/valheim-digitalocean; docker-compose up -d`
-- ssh command to drople, start valheim servert: `cd ~/valheim-digitalocean; docker exec -it valheam odin start`
+- ssh command to droplet, start docker container(s): `cd ~/valheim-digitalocean/server; docker-compose up -d`
+- ssh command to drople, start valheim servert: `cd ~/valheim-digitalocean/server; docker exec -it valheam odin start`
 - display the IP of the server to the user
 - game on!
 
 When you're done, the `stop_server.py` script will do the following
 - DigitalOcean API: identify a running droplet
-- ssh command to droplet; stop valheim server: `cd ~/valheim-digitalocean; docker exec -it valheam odin stop`
+- ssh command to droplet; stop valheim server: `cd ~/valheim-digitalocean/server; docker exec -it valheam odin stop`
 - DigitalOcean API: power down droplet (so we can snapshot it safely)
 - DigitalOcean API: snapshot droplet to `<name from config>_new`
 - DigitalOcean API: delete old snapshot named `<name from config>`
