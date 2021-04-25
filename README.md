@@ -2,7 +2,7 @@
 A wrapper around a valheim server and Digital Ocean to make it easy to run a server in the cloud and start/stop it to save money. This has been developed as a convenience and is not bulletproof, so please try to understand what it is doing before blindly using it.  
 
 ### thanks to other open source
-- for providing docker containers that make running the server very simple: https://github.com/mbround18/valheim-docker
+- for providing docker containers that make running the server simple: https://github.com/mbround18/valheim-docker
 - for providing a feature-rich DigitalOcean API in python: https://github.com/koalalorenzo/python-digitalocean
 
 ### server setup
