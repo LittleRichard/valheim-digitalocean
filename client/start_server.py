@@ -70,6 +70,8 @@ if valheim_droplet is None:
 else:
     print(f'Droplet already exists at {valheim_droplet.ip_address}, '
           f'not creating one.')
+    print('Exiting...')
+    exit()
 
 LOCAL_SSH_PASSWORD = getpass.getpass(prompt='Enter your admin password to access ssh: ')
 
