@@ -1,4 +1,9 @@
 # valheim-digitalocean
+A wrapper around a valheim server and Digital Ocean to make it easy to run a server in the cloud and start/stop it to save money. This has been developed as a convenience and is not bulletproof, so please try to understand what it is doing before blindly using it.  
+
+### thanks to other open source
+- for providing docker containers that make running the server very simple: https://github.com/mbround18/valheim-docker
+- for providing a feature-rich DigitalOcean API in python: https://github.com/koalalorenzo/python-digitalocean
 
 ### server setup
 The server is mostly a one-time setup, but if you want to load your own world you may need to do some extra things after a server is started/running.
@@ -9,7 +14,7 @@ The server is mostly a one-time setup, but if you want to load your own world yo
   - Note that you can build larger servers from a backup, but not smaller ones.
   - This guide works with Ubuntu, but if you prefer a different flavor of linux it will probably still work
 - log into the droplet using SSH
-  - IMO this isn't a high-security app, so it's okay to just do everything as root
+  - this isn't a high-security application with anything other than your valheim world to protect, so we'll just do everything as root.
 - [install docker](https://docs.docker.com/engine/install/) in the droplet
   - don't blindly copy-paste from the instructions, they require some choices; you want to use the stable release
 - [install docker-compose](https://docs.docker.com/compose/install/) in the droplet
