@@ -50,6 +50,14 @@ docker-compose down
 print('\nserver stdout (wait for it to finish)')
 print(''.join(stdout.readlines()))
 
+print('droplet powering down to take snapshot. '
+      'This will take a while...')
+snap_name = IMAGE_BASE_NAME + '-' + str(int(time.time()))
+snap_action = valheim_droplet.take_snapshot(snap_name,
+                                            return_dict=False,
+                                            power_off=True)
+snap_action.wait()
+
 print('snapshot is processing, cleaning up old snapshots')
 snapshots = sorted(
     (x for x in manager.get_droplet_snapshots()
@@ -61,14 +69,6 @@ if len(snapshots) > SNAPS_TO_KEEP:
     for snap in snapshots[:-1*SNAPS_TO_KEEP]:
         print(f'destroying snapshot {snap}')
         snap.destroy()
-
-print('droplet powering down to take snapshot. '
-      'This will take a while...')
-snap_name = IMAGE_BASE_NAME + '-' + str(int(time.time()))
-snap_action = valheim_droplet.take_snapshot(snap_name,
-                                            return_dict=False,
-                                            power_off=True)
-snap_action.wait()
 
 valheim_droplet.load()
 print(f'finished snapshot, droplet status: {valheim_droplet.status}')
