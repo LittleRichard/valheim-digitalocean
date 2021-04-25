@@ -72,7 +72,7 @@ else:
     print(f'Droplet already exists at {valheim_droplet.ip_address}, '
           f'not creating one.')
 
-print('Droplet is ready, starting up valheim server. '
+print('Droplet is ready, updating & starting valheim server. '
       'This may take several minutes...')
 ssh_client = SSHClient()
 ssh_client.load_system_host_keys()
@@ -88,7 +88,7 @@ try:
     docker system prune --force && \
     docker-compose up -d && \
     sleep 10 && \
-    docker exec -i valheim bash -c "cd ../valheim ; odin start"
+    docker exec -i valheim bash -c "cd ../valheim ; odin update ; odin start"
     """
 
     (stdin, stdout, stderr) = ssh_client.exec_command(command)
