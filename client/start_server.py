@@ -51,6 +51,7 @@ if valheim_droplet is None:
                                            image=snap.id,
                                            size_slug=SIZE_SLUG,
                                            backups=False,
+                                           monitoring=True,
                                            ssh_keys=manager.get_all_sshkeys())
     valheim_droplet.create()
     idx = 0
