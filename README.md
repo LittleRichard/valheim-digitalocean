@@ -19,7 +19,7 @@ The server is mostly a one-time setup, but if you want to load your own world yo
   - don't blindly copy-paste from the instructions, they require some choices; you want to use the stable release
 - [install docker-compose](https://docs.docker.com/compose/install/) in the droplet
 - clone this repository into the server
-- adjust `docker-compose.yml` as necessary to customize your server
+- copy `docker-compose.yml.template` into `docker-compose.yml` and adjust it as necessary to customize your server
 - `docker-compose up -d` to start it up
 - `docker-compose logs --tail=100 -f` to monitor
 - if you're going to load your own world or anything, this would be the time to do it
