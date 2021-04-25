@@ -1,3 +1,4 @@
+import getpass
 import time
 
 import digitalocean
@@ -12,9 +13,6 @@ assert API_KEY, 'no digital ocean API key specified'
 
 IMAGE_BASE_NAME = config_data.get('snapshot_name')
 assert IMAGE_BASE_NAME, 'no snap name specified'
-
-LOCAL_SSH_PASSWORD = config_data.get('local_ssh_password')
-assert LOCAL_SSH_PASSWORD, 'no local SSH password'
 
 SNAPS_TO_KEEP = config_data.get('snaps_to_keep')
 assert SNAPS_TO_KEEP, 'must keep 1 snap'
@@ -31,6 +29,8 @@ for droplet in manager.get_all_droplets():
 if valheim_droplet is None:
     print('No droplet found, nothing to stop.  Exiting')
     exit(0)
+
+LOCAL_SSH_PASSWORD = getpass.getpass(prompt='Enter your admin password to access ssh: ')
 
 ssh_client = SSHClient()
 ssh_client.load_system_host_keys()

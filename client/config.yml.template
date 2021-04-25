@@ -2,8 +2,6 @@ populate and rename this to config.yml
 
 # your digital ocean API key
 api_key:
-# WARNING, THIS IS DANGEROUS; the password used to unlock SSH.
-local_ssh_password:
 snaps_to_keep: 3
 snapshot_name: valheim-server
 size_slug: s-4vcpu-8gb

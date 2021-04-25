@@ -1,3 +1,4 @@
+import getpass
 import time
 
 import digitalocean
@@ -9,9 +10,6 @@ with open('config.yml') as file:
 
 API_KEY = config_data.get('api_key')
 assert API_KEY, 'no digital ocean API key specified'
-
-LOCAL_SSH_PASSWORD = config_data.get('local_ssh_password')
-assert LOCAL_SSH_PASSWORD, 'no local SSH password'
 
 IMAGE_BASE_NAME = config_data.get('snapshot_name')
 assert IMAGE_BASE_NAME, 'no snap name specified'
@@ -73,6 +71,8 @@ else:
     print(f'Droplet already exists at {valheim_droplet.ip_address}, '
           f'not creating one.')
 
+LOCAL_SSH_PASSWORD = getpass.getpass(prompt='Enter your admin password to access ssh: ')
+
 print('Droplet is ready, updating & starting valheim server. '
       'This may take several minutes...')
 ssh_client = SSHClient()
@@ -81,6 +81,7 @@ ssh_client.set_missing_host_key_policy(AutoAddPolicy())
 ssh_client.connect(passphrase=LOCAL_SSH_PASSWORD,
                    hostname=valheim_droplet.ip_address,
                    username='root')
+
 try:
     command = """
     cd valheim-digitalocean && \
