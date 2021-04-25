@@ -9,7 +9,7 @@ services:
       - 2458:2458/udp
     environment:
       - PORT=2456
-      - NAME="Do Viking Stuff"
+      - NAME="valheim-digitalocean"
       - WORLD="Dedicated"
       - PASSWORD="Choose a password, don't use this one"
       - TZ=America/New_York
