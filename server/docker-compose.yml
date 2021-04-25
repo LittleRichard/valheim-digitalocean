@@ -11,6 +11,7 @@ services:
       - PORT=2456
       - NAME="Do Viking Stuff"
       - WORLD="Dedicated"
+      - PASSWORD="Choose a password, don't use this one"
       - TZ=America/New_York
       - PUBLIC=1
       - AUTO_UPDATE=1
