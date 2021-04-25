@@ -38,17 +38,19 @@ ssh_client.set_missing_host_key_policy(AutoAddPolicy())
 ssh_client.connect(passphrase=LOCAL_SSH_PASSWORD,
                    hostname=valheim_droplet.ip_address,
                    username='root')
+try:
+    command = """
+        cd valheim-digitalocean && \
+        docker exec -i valheim bash -c "cd ../valheim ; odin stop" && \
+        sleep 10 && \
+        docker-compose down
+    """
 
-command = """
-cd valheim-digitalocean && \
-docker exec -i valheim bash -c "cd ../valheim ; odin stop" && \
-sleep 10 && \
-docker-compose down
-"""
-
-(stdin, stdout, stderr) = ssh_client.exec_command(command)
-print('\nserver stdout (wait for it to finish)')
-print(''.join(stdout.readlines()))
+    (stdin, stdout, stderr) = ssh_client.exec_command(command)
+    print('\nserver stdout (wait for it to finish)')
+    print(''.join(stdout.readlines()))
+finally:
+    ssh_client.close()
 
 print('droplet powering down to take snapshot. '
       'This will take a while...')
