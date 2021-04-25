@@ -5,7 +5,7 @@ A wrapper around a valheim server and Digital Ocean to make it easy to run a ser
 - for providing docker containers that make running the server simple: https://github.com/mbround18/valheim-docker
 - for providing a feature-rich DigitalOcean API in python: https://github.com/koalalorenzo/python-digitalocean
 
-### server setup
+### starting from scratch? How to set up a server
 The server is mostly a one-time setup, but if you want to load your own world you may need to do some extra things after a server is started/running.
 - create a DigitalOcean account and link a credit card. you'll need a credit card to unlock bigger/better server sizes
   - recommended: put a billing alert on your Digital Ocean account just in case you get hacked and someone uses your API key to make more servers
@@ -27,11 +27,12 @@ The server is mostly a one-time setup, but if you want to load your own world yo
 - power off the server
 - make a snapshot of it named the same as `<name from config>`
 
-### client setup
+### if you already have a server set up and just need to start/stop it
 The client part of this codebase will use a DigitalOcean API key along with a digital ocean python API to instrument the server.  Save money by only starting the server when you'll use it, and stop it when you're not!
 
 pre-requisites
-- update the `config.yaml` file with required information
+- [create an ssh key](https://docs.github.com/en/github/authenticating-to-github/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent) and send the `.pub` one to the owner of the DigitalOcean admin account (likely found in `~/.ssh` directory)
+- update the `client/config.yaml` file with an API key, provided by the owner of the DigitalOcean admin account
 
 When you want to play, the `start_server.py` script will do the following (presumes ssh access to the droplet is configured):
 - DigitalOcean API: identify the most recent snapshot
