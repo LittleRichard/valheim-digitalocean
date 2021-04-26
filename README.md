@@ -18,6 +18,7 @@ The server is mostly a one-time setup, but if you want to load your own world yo
 - [install docker](https://docs.docker.com/engine/install/) in the droplet
   - don't blindly copy-paste from the instructions, they require some choices; you want to use the stable release
 - [install docker-compose](https://docs.docker.com/compose/install/) in the droplet
+- [follow this guide](https://www.digitalocean.com/community/tutorials/how-to-setup-additional-entropy-for-cloud-servers-using-haveged) to prevent `docker-compose` from [hanging while executed via ssh](https://github.com/docker/compose/issues/6678#issuecomment-526831488)
 - clone this repository into the server
 - copy `docker-compose.yml.template` into `docker-compose.yml` and adjust it as necessary to customize your server
 - `docker-compose up -d` to start it up
