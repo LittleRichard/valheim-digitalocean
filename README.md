@@ -43,7 +43,9 @@ When you want to play, the `start_server.py` script will do the following (presu
 - display the IP of the server to the user
 
 #### to start server
-- first time only, do this: `python3 -m venv valheim_venv`
+- first time only, do this: 
+  - `apt-get install python3-venv`
+  - `python3 -m venv valheim_venv`
 - every time, do this: `source valheim_venv/bin/activate`
   - it's also a good look to `git pull` the latest on the `main` branch every time as well
 - first time only, do this: `pip install -r requirements.txt`
