@@ -1,9 +1,11 @@
 import getpass
-import time
 
 import digitalocean
 import yaml
 from paramiko import SSHClient, AutoAddPolicy
+
+from utils import get_curr_droplet, get_newest_snap, wait_for_active_droplet, \
+    exec_ssh_and_return_output
 
 with open('config.yml') as file:
     config_data = yaml.full_load(file)
@@ -22,82 +24,75 @@ assert REGION, 'no region specified'
 
 manager = digitalocean.Manager(token=API_KEY)
 
-valheim_droplet = None
-for droplet in manager.get_all_droplets():
-    print(f'Scanning {droplet.name:40s} | {droplet.ip_address:16s} | {droplet.status}')
+my_droplet = get_curr_droplet(manager, IMAGE_BASE_NAME)
 
-    if droplet.name.startswith(IMAGE_BASE_NAME):
-        valheim_droplet = droplet
+if my_droplet is None:
+    valheim_snap = get_newest_snap(manager, IMAGE_BASE_NAME)
+    assert valheim_snap, f'could not find snapshot matching {IMAGE_BASE_NAME}'
 
-if valheim_droplet is None:
-    # go find the snapshot and make a droplet for it
-    snapshots = manager.get_droplet_snapshots()
-    valheim_snap = None
-    for snap in sorted(snapshots, key=lambda x: x.created_at):
-        if snap.name.startswith(IMAGE_BASE_NAME):
-            print(f'found snap {snap.name} created at {snap.created_at}')
-            valheim_snap = snap  # will end with the newest one
+    print(f'No droplet running, creating one from snapshot {valheim_snap.name}')
 
-    if valheim_snap is None:
-        assert False, f'could not find snapshot {IMAGE_BASE_NAME}'
+    my_droplet = digitalocean.Droplet(token=API_KEY,
+                                      name=valheim_snap.name,
+                                      region=REGION,
+                                      image=valheim_snap.id,
+                                      size_slug=SIZE_SLUG,
+                                      backups=False,
+                                      monitoring=True,
+                                      ssh_keys=manager.get_all_sshkeys())
+    my_droplet.create()
 
-    print(f'no droplet, but found snap. creating from snap {snap.name}')
-
-    valheim_droplet = digitalocean.Droplet(token=API_KEY,
-                                           name=snap.name,
-                                           region=REGION,
-                                           image=snap.id,
-                                           size_slug=SIZE_SLUG,
-                                           backups=False,
-                                           monitoring=True,
-                                           ssh_keys=manager.get_all_sshkeys())
-    valheim_droplet.create()
-    idx = 0
-    max_idx = 100
-    sleep_sec = 5
-    while True:
-        valheim_droplet.load()
-        print(f'Status {valheim_droplet.status} | {valheim_droplet.ip_address} '
-              f'after {idx * sleep_sec} sec')
-
-        if valheim_droplet.status == 'active':
-            time.sleep(sleep_sec)  # give it a second to become ready
-            break
-        idx += 1
-        time.sleep(sleep_sec)
-
-        assert idx != max_idx, 'hit max retries... ruh roh'
+    # this function is a generator of status messages, and will
+    # raise an error if it exceeds the maximum wait time.
+    for status_msg in wait_for_active_droplet(my_droplet):
+        print(status_msg)
 else:
-    print(f'Droplet already exists at {valheim_droplet.ip_address}, '
-          f'not creating one.')
-    print('Exiting...')
-    exit()
-
-LOCAL_SSH_PASSWORD = getpass.getpass(prompt='Enter your admin password to access ssh: ')
+    print(f'Droplet already exists at {my_droplet.ip_address}')
+    user_input = input(
+        'Would you like to try to start the game server? Enter "Y" if so: ')
+    if user_input != "Y":
+        print('Exiting...')
+        exit()
 
 print('Droplet is ready, updating & starting valheim server. '
       'This may take several minutes...')
+
+LOCAL_SSH_PASSWORD = getpass.getpass(
+    prompt='Enter your admin password to access ssh: ')
+
 ssh_client = SSHClient()
 ssh_client.load_system_host_keys()
 ssh_client.set_missing_host_key_policy(AutoAddPolicy())
-ssh_client.connect(passphrase=LOCAL_SSH_PASSWORD,
-                   hostname=valheim_droplet.ip_address,
-                   username='root')
 
 try:
-    command = """
+    ssh_client.connect(passphrase=LOCAL_SSH_PASSWORD,
+                       hostname=my_droplet.ip_address,
+                       username='root')
+
+    update_and_setup_cmd = """
     cd valheim-digitalocean && \
     git pull && \
     cd server && \
     docker system prune --force && \
-    docker-compose up -d && \
-    sleep 10 && \
-    docker exec -i valheim bash -c "cd ../valheim ; odin update ; odin start"
+    echo "Done with update/setup"
     """
+    output = exec_ssh_and_return_output(ssh_client, update_and_setup_cmd)
+    print(output)
 
-    (stdin, stdout, stderr) = ssh_client.exec_command(command)
-    print(''.join(stdout.readlines()))
+    start_container_cmd = """
+    cd valheim-digitalocean/server && \
+    docker-compose up -d && \
+    echo "Starting containers"
+    """
+    output = exec_ssh_and_return_output(ssh_client, start_container_cmd)
+    print(output)
+
+    start_game_server_cmd = """
+    docker exec -i valheim bash -c "cd ../valheim && odin update && odin start"
+    """
+    output = exec_ssh_and_return_output(ssh_client, start_game_server_cmd)
+    print(output)
 finally:
     ssh_client.close()
 
-print(f'\n**\nVIKING TIME at IP: {valheim_droplet.ip_address}\n**\n')
+print(f'\n**\nServer ready at IP: {my_droplet.ip_address}\n**\n')
