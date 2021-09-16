@@ -1,74 +1,69 @@
-import getpass
 import time
 
-import digitalocean
-import yaml
 from paramiko import SSHClient, AutoAddPolicy
 
 from utils import get_curr_droplet, exec_ssh_and_return_output
 
-with open('config.yml') as file:
-    config_data = yaml.full_load(file)
 
-API_KEY = config_data.get('api_key')
-assert API_KEY, 'no digital ocean API key specified'
+def stop_server(manager, image_base_name):
+    valheim_droplet = get_curr_droplet(manager, image_base_name)
+    if valheim_droplet is None:
+        print('No droplet found, cannot stop server.')
+        return
 
-IMAGE_BASE_NAME = config_data.get('snapshot_name')
-assert IMAGE_BASE_NAME, 'no snap name specified'
+    ssh_client = SSHClient()
+    ssh_client.load_system_host_keys()
+    ssh_client.set_missing_host_key_policy(AutoAddPolicy())
+    try:
+        ssh_client.connect(hostname=valheim_droplet.ip_address,
+                           username='root')
 
-SNAPS_TO_KEEP = config_data.get('snaps_to_keep')
-assert SNAPS_TO_KEEP, 'must keep 1 snap'
+        command = """
+            cd valheim-digitalocean && \
+            docker exec -i valheim bash -c "cd ../valheim ; odin stop" && \
+            sleep 5 && \
+            docker-compose down
+        """
 
-manager = digitalocean.Manager(token=API_KEY)
+        print('Stopping server, may take a minute or two.')
+        result = exec_ssh_and_return_output(ssh_client, command)
+        print(result)
+    finally:
+        ssh_client.close()
 
-valheim_droplet = get_curr_droplet(manager, IMAGE_BASE_NAME)
-if valheim_droplet is None:
-    print('No droplet found, nothing to stop.  Exiting')
-    exit(0)
 
-LOCAL_SSH_PASSWORD = getpass.getpass(
-    prompt='Enter your admin password to access ssh: ')
+def stop_and_snapshot_droplet(manager, image_base_name):
+    try:
+        valheim_droplet = get_curr_droplet(manager, image_base_name)
+        if valheim_droplet is None:
+            print('No droplet found, cannot stop droplet.')
+            return
 
-ssh_client = SSHClient()
-ssh_client.load_system_host_keys()
-ssh_client.set_missing_host_key_policy(AutoAddPolicy())
-try:
-    ssh_client.connect(passphrase=LOCAL_SSH_PASSWORD,
-                       hostname=valheim_droplet.ip_address,
-                       username='root')
+        snap_name = image_base_name + '-' + str(int(time.time()))
+        snap_action = valheim_droplet.take_snapshot(snap_name,
+                                                    return_dict=False,
+                                                    power_off=True)
+        snap_action.wait()
+    finally:
+        print('Done stopping server and snapshotting. If this completed '
+              'without error, you can proceed to destroy the droplet. \n'
+              'HOWEVER if there was an error, you will need to wait for the'
+              'snapshot to complete before destroying. Use other commands'
+              'to see if your snapshot has been created yet.')
 
-    command = """
-        cd valheim-digitalocean && \
-        docker exec -i valheim bash -c "cd ../valheim ; odin stop" && \
-        sleep 5 && \
-        docker-compose down
-    """
 
-    print('Stopping server, may take a minute or two.')
-    result = exec_ssh_and_return_output(ssh_client, command)
-    print(result)
-finally:
-    ssh_client.close()
+def destroy_droplet(manager, image_base_name, wait_first=True):
+    valheim_droplet = get_curr_droplet(manager, image_base_name)
+    if valheim_droplet is None:
+        print('No droplet found, cannot destroy droplet.')
+        return
 
-print('Stopping droplet to take a snapshot. '
-      'This will take several minutes, please wait...')
-snap_name = IMAGE_BASE_NAME + '-' + str(int(time.time()))
-snap_action = valheim_droplet.take_snapshot(snap_name,
-                                            return_dict=False,
-                                            power_off=True)
-snap_action.wait()
+    if valheim_droplet.status != 'off':
+        print(f'Cannot destroy droplet with status {valheim_droplet.status}')
 
-print('Snapshot complete, game data is backed up. Cleaning old snapshots.')
-snapshots = sorted(
-    (x for x in manager.get_droplet_snapshots()
-     if x.name.startswith(IMAGE_BASE_NAME)),
-    key=lambda x: x.created_at
-)
-if len(snapshots) > SNAPS_TO_KEEP:
-    print(f'Found {len(snapshots)} snapshots, culling old ones')
-    for snap in snapshots[:-1*SNAPS_TO_KEEP]:
-        print(f'*** destroying snapshot {snap}')
-        snap.destroy()
+    if wait_first:
+        print(f'Found droplet {valheim_droplet}, destroying in 10sec... '
+              f'Ctrl-C to cancel')
+        time.sleep(10)
 
-print('Destroying droplet')
-valheim_droplet.destroy()
+    valheim_droplet.destroy()

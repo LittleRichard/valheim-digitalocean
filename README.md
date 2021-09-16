@@ -48,9 +48,11 @@ When you want to play, the `start_server.py` script will do the following (presu
   - `python3 -m venv valheim_venv`
 - every time, do this: `source valheim_venv/bin/activate`
   - it's also a good look to `git pull` the latest on the `main` branch every time as well
-- first time only, do this: `pip install -r requirements.txt`
-- execute: `cd client ; python start_server.py`
-  - note that if this fails, your droplet/server may be in a weird state and you'll want to clean it up manually
+- execute: `cd client`
+- every time there's an update, do this: `pip install -r requirements.txt`
+- execute: `python valhalla.py`
+  - use the help to explore the commands, but you probably want:
+    - `create_droplet_and_start_server`
 
 When you're done, the `stop_server.py` script will do the following
 - DigitalOcean API: identify a running droplet
@@ -63,6 +65,11 @@ When you're done, the `stop_server.py` script will do the following
 #### to stop server
 - every time, do this: `source valheim_venv/bin/activate`
   - it's also a good look to `git pull` the latest on the `main` branch every time as well
-- execute: `cd client ; python stop_server.py`
-  - note that this always snapshots the currently-running server, so if your server is in an unhappy state you may want to clean it up manually to avoid snapshotting a broken state and spinning it up from that state next time.
-
+- execute: `cd client`
+- execute: `python valhalla.py`
+  - This command will stop the server, snapshot it, cull old snapshots, and destroy the droplet
+    - `stop_snapshot_cull_destroy`
+  - Sometimes this fails for SSH timeouts and may leave the droplet in a stuck state
+  - Use the other commands to investigate whether or not the snapshot was successfully created
+    - If you see a snapshot from when you last tried to stop the server, you're ok to `destroy_droplet`
+    - If you don't see a snapshot, you probably want to `stop_and_snapshot_droplet` again

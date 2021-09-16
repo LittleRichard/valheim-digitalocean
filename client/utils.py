@@ -3,6 +3,10 @@ import time
 
 def get_curr_droplet(manager, image_base_name):
     for droplet in manager.get_all_droplets():
+        if droplet.name is None:
+            print(f'Droplet in strange state {droplet}')
+            continue
+
         print(
             f'Scanning {droplet.name:40s} | '
             f'{droplet.ip_address:16s} | '
@@ -10,6 +14,20 @@ def get_curr_droplet(manager, image_base_name):
 
         if droplet.name.startswith(image_base_name):
             return droplet
+
+
+def cull_old_snapshots(manager, image_base_name, num_to_keep):
+    assert num_to_keep >= 2, f'it is dangerous to keep {num_to_keep}'
+    snapshots = sorted(
+        (x for x in manager.get_droplet_snapshots()
+         if x.name.startswith(image_base_name)),
+        key=lambda x: x.created_at
+    )
+    if len(snapshots) > num_to_keep:
+        print(f'Found {len(snapshots)} snapshots, culling old ones')
+        for snap in snapshots[:-1*num_to_keep]:
+            print(f'*** destroying snapshot {snap}')
+            snap.destroy()
 
 
 def get_newest_snap(manager, image_base_name):
@@ -30,6 +48,11 @@ def wait_for_active_droplet(droplet, check_every_sec=5, max_wait_sec=300):
         droplet.load()
         yield (f'Status {droplet.status} | {droplet.ip_address} '
                f'after {curr_wait_sec} seconds')
+
+        if droplet.status == 'off':
+            print('Droplet is off, not starting up. May be jammed, '
+                  'use other commands to fix')
+            return
 
         if droplet.status == 'active':
             return
