@@ -3,8 +3,8 @@ import time
 
 def get_curr_droplet(manager, image_base_name):
     for droplet in manager.get_all_droplets():
-        if droplet.name is None:
-            print(f'Droplet in strange state {droplet}')
+        if droplet.name is None or droplet.ip_address is None:
+            print(f'Droplet in strange state, give it a minute: {droplet}')
             continue
 
         print(
@@ -42,7 +42,7 @@ def get_newest_snap(manager, image_base_name):
     return valheim_snap
 
 
-def wait_for_active_droplet(droplet, check_every_sec=5, max_wait_sec=300):
+def wait_for_active_droplet(droplet, check_every_sec=5, max_wait_sec=900):
     curr_wait_sec = 0
     while droplet.status != 'active':
         droplet.load()
