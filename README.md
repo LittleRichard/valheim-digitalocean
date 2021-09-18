@@ -73,3 +73,13 @@ When you're done, the `stop_server.py` script will do the following
   - Use the other commands to investigate whether or not the snapshot was successfully created
     - If you see a snapshot from when you last tried to stop the server, you're ok to `destroy_droplet`
     - If you don't see a snapshot, you probably want to `stop_and_snapshot_droplet` again
+
+#### to update server
+In theory, the server should update as part of this repo's start-server command... but it often fails.
+- `ssh root@<droplet IP>`
+- `cd ~/valheim-digitalocean/server`
+- `docker-compose start valheim`
+- `docker exec -it valheim bash`
+- `cd /home/steam/valheim`
+- `odin stop`
+- `odin update`
