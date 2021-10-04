@@ -86,7 +86,7 @@ class Valhalla(cmd2.Cmd):
         stop_server(Valhalla.MANAGER, IMAGE_BASE_NAME)
 
         print('Stopping droplet and snapshotting it')
-        print('*** This make take 20-30min!!')
+        print('*** This may take 20-30min!!')
         stop_and_snapshot_droplet(Valhalla.MANAGER, IMAGE_BASE_NAME)
 
         print('Culling old snapshots')
