@@ -1,5 +1,6 @@
 import cmd2
 import sys
+import time
 
 import digitalocean
 import yaml
@@ -51,6 +52,9 @@ class Valhalla(cmd2.Cmd):
             SIZE_SLUG,
             REGION
         )
+        
+        print('Droplet ready, waiting a few seconds for SSH')
+        time.sleep(10)
 
         print('Starting Valheim server')
         start_server(Valhalla.MANAGER, IMAGE_BASE_NAME)
