@@ -59,6 +59,7 @@ def start_server(manager, image_base_name):
         git pull && \
         cd server && \
         docker system prune --force && \
+        docker system prune --force --volume && \
         echo "Done with update/setup"
         """
         output = exec_ssh_and_return_output(ssh_client, update_and_setup_cmd)
