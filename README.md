@@ -28,55 +28,63 @@ The server is mostly a one-time setup, but if you want to load your own world yo
 - power off the server
 - make a snapshot of it named the same as `<name from config>`
 
-### if you already have a server set up and just need to start/stop it
+### once a server is configured, you can interact with cloud instances of it using the client tool
+- make sure you've completed the pre-requisites once:
+  - [create an ssh key](https://docs.github.com/en/github/authenticating-to-github/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent) and send the `.pub` one to the owner of the DigitalOcean admin account (likely found in `~/.ssh` directory)
+  - update the `client/config.yaml` file with an API key, provided by the owner of a DigitalOcean admin account
+
 The client part of this codebase will use a DigitalOcean API key along with a digital ocean python API to instrument the server.  Save money by only starting the server when you'll use it, and stop it when you're not!
-
-pre-requisites
-- [create an ssh key](https://docs.github.com/en/github/authenticating-to-github/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent) and send the `.pub` one to the owner of the DigitalOcean admin account (likely found in `~/.ssh` directory)
-- update the `client/config.yaml` file with an API key, provided by the owner of the DigitalOcean admin account
-
-When you want to play, the `start_server.py` script will do the following (presumes ssh access to the droplet is configured):
-- DigitalOcean API: identify the most recent snapshot
-- DigitalOcean API: create a droplet from a snapshot
-- ssh command to droplet to start docker container(s)
-- ssh command to droplet to start valheim server inside docker containers
-- display the IP of the server to the user
-
-#### to start server
-- first time only, do this: 
+- first time only, open a terminal and:
   - `apt-get install python3-venv`
   - `python3 -m venv valheim_venv`
-- every time, do this: `source valheim_venv/bin/activate`
-  - it's also a good look to `git pull` the latest on the `main` branch every time as well
-- execute: `cd client`
-- every time there's an update, do this: `pip install -r requirements.txt`
-- execute: `python valhalla.py`
-  - use the help to explore the commands, but you probably want:
-    - `create_droplet_and_start_server`
+- every time you open a new terminal, activate the virtualenv: `source valheim_venv/bin/activate`
+  - you'll see your terminal prefixed with `(valheim_venv) `
+- `git pull` the latest on the `main` branch
+- if `git pull` grabbed any updates, do this: `pip install -r requirements.txt`
+  - installs any new libraries introduced by new code
 
-When you're done, the `stop_server.py` script will do the following
+#### valhalla.py
+a command line tool to interact with cloud servers ("droplets") and valheim servers running on them. 
+execute it as:
+- make sure you activated the virtualenv
+- execute: `cd client`
+- execute: `python valhalla.py`
+
+At any time, enter `help` to see the commands available to you
+
+#### from zero to valhallha
+When you want to play:
+- make sure you activated the virtualenv
+- execute: `cd client`
+- execute: `python valhalla.py`
+- valhalla command: `full_up`
+  - to fire it up from scratch, `full_up` performs the following
+    - DigitalOcean API: identify the most recent snapshot
+    - DigitalOcean API: create a droplet from a snapshot
+    - ssh command to droplet to start docker container(s)
+    - ssh command to droplet to start & update valheim server inside docker containers
+    - display the IP of the server to the user
+
+#### spin down server
+When you're done, `full_down` will do the following (use `help` to fix any issues):
+- make sure you activated the virtualenv
+- execute: `cd client`
+- execute: `python valhalla.py`
+- valhalla command: `full_down`
 - DigitalOcean API: identify a running droplet
-- ssh command to droplet to stop valheim server
-- DigitalOcean API: power down droplet (so we can snapshot it safely, this doesn't save money)
-- DigitalOcean API: snapshot droplet
-- DigitalOcean API: if there are more than the configured number-snaps-to-keep, delete oldest snapshots as necessary
-- DigitalOcean API: destroy droplet (this actually saves money)
+  - ssh command to droplet to stop valheim server
+  - DigitalOcean API: power down droplet (so we can snapshot it safely, this doesn't save money)
+  - DigitalOcean API: snapshot droplet
+  - DigitalOcean API: if there are more than the configured number-snaps-to-keep, delete oldest snapshots as necessary
+  - DigitalOcean API: destroy droplet (this actually saves money)
 
-#### to stop server
-- every time, do this: `source valheim_venv/bin/activate`
-  - it's also a good look to `git pull` the latest on the `main` branch every time as well
-- execute: `cd client`
-- execute: `python valhalla.py`
-  - This command will stop the server, snapshot it, cull old snapshots, and destroy the droplet
-    - `stop_snapshot_cull_destroy`
-  - Sometimes this fails for SSH timeouts and may leave the droplet in a stuck state
-  - Use the other commands to investigate whether or not the snapshot was successfully created
-    - If you see a snapshot from when you last tried to stop the server, you're ok to `destroy_droplet`
-    - If you don't see a snapshot, you probably want to `stop_and_snapshot_droplet` again
+Note that this process may take 20+ minutes, and sometimes is interrupted. You can check
+to see if anything is running by the command `droplet_show`, and see if a droplet backup completed
+using `snapshot_list`.  Use `help` to figure out what you can do to fix it.
 
 #### to update server
 In theory, the server should update as part of this repo's start-server command... but it often fails.
-- `ssh root@<droplet IP>`
+- `ssh root@<droplet IP address>`
 - `cd ~/valheim-digitalocean/server`
 - `docker-compose start valheim`
 - `docker exec -it valheim bash`

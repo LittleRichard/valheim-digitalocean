@@ -1,5 +1,6 @@
 config.yml
 valheim_venv/*
+*/venv/*
 *.idea
 docker-compose.yml
 server/valheim/*

@@ -16,7 +16,7 @@ def get_curr_droplet(manager, image_base_name):
             return droplet
 
 
-def cull_old_snapshots(manager, image_base_name, num_to_keep):
+def snapshot_cull_old(manager, image_base_name, num_to_keep):
     assert num_to_keep >= 2, f'it is dangerous to keep {num_to_keep}'
     snapshots = sorted(
         (x for x in manager.get_droplet_snapshots()
